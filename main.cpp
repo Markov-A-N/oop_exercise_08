@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	int vector_size = std::atoi(argv[1]);
+	size_t vector_size = std::atoi(argv[1]);
 	Factory factory;
 	
 	Subscriber subscriber;
@@ -31,15 +31,15 @@ int main(int argc, char *argv[]) {
 	std::string cmd;
 	std::cout << "quit or add\n";
 	while (std::cin >> cmd) {
+		std::unique_lock<std::mutex> main_lock(subscriber.mtx);
 		if (cmd == "quit" || cmd == "exit" || cmd == "q" || cmd == "e") {
 			subscriber.end = true;
 			subscriber.cv.notify_all();
 			break;
 		} else if (cmd == "add" || cmd == "a") {
-			std::unique_lock<std::mutex> main_lock(subscriber.mtx);
 			std::string figure_type;
 
-			for (int id = 0; id < vector_size; id++) {
+			for (size_t id = 0; id < vector_size; id++) {
 				std::cout << "figure type\n";
 				std::cin >> figure_type;
 				if (figure_type == "triangle" || figure_type == "t") {
@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			if (subscriber.buffer.size() == subscriber.buffer.capacity()) {
-				main_lock.unlock();
+			if (subscriber.buffer.size() == vector_size) {
+				//main_lock.unlock();
 				subscriber.cv.notify_all();
 				subscriber.cv.wait(main_lock, [&subscriber]() {
 					return subscriber.success == true;
@@ -90,9 +90,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	subscriber_thread.join();
-
-
-
 
 	return 0;
 }
