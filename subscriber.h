@@ -1,6 +1,10 @@
 #ifndef SUBSCRIBER_H
 #define SUBSCRIBER_H 1
 
+#include <string>
+
+struct Subscriber;
+
 struct Subscribers_process {
 	virtual void Process(std::vector<std::shared_ptr<Figure>> &buffer) = 0;
 	virtual ~Subscribers_process() = default;
@@ -16,14 +20,14 @@ struct Console_process : Subscribers_process {
 
 struct File_process : Subscribers_process {
 	void Process(std::vector<std::shared_ptr<Figure>> &buffer) override {
-		std::string filename;
-		std::cout << "Input name of file: ";
-		std::cin >> filename;
-		std::ofstream os(filename);
+		std::ofstream os(std::to_string(name));
 		for (const auto figure : buffer) {
 			figure->Print(os);
 		}
+		name++;
 	}
+
+	size_t name = 0;
 };
 
 struct Subscriber {
